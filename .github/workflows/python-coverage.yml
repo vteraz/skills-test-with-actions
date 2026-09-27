@@ -1,0 +1,35 @@
+name: Python Coverage
+on:
+    pull_request:
+        branches:
+            - main
+permissions:
+    pull-requests: write
+
+env:
+    COVERAGE_GREEN_PERCENTAGE: 90
+
+jobs:
+    python-coverage:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: 3.13
+            - name: Install dependencies
+              run: |
+                pip install -r requirements.txt
+                pip install pytest coverage pytest-cov
+            - name: Run tests and generate coverage details
+              run: pytest --cov=src
+            - name: Coverage details
+              uses: py-cov-action/python-coverage-comment-action@v3
+              with:
+                GITHUB_TOKEN: ${{ github.token }}
+                MINIMUM_GREEN: $COVERAGE_GREEN_PERCENTAGE
+                MINIMUM_ORANGE: 70
+            - name: Fail if coverage bellow threshold
+              run: coverage report --fail-under=$COVERAGE_GREEN_PERCENTAGE
